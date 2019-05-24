@@ -1,4 +1,3 @@
-
 class PowerUps {
   var name = "";
   var multiplier = 1.0;

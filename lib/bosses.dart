@@ -1,4 +1,3 @@
-
 class Bosses {
   var name = "";
   var life = 980;

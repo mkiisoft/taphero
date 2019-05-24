@@ -44,8 +44,9 @@ class _IntroAppState extends State<IntroApp> with WidgetsBindingObserver {
   AudioCache coinCache;
 
   static AudioCache musicCache;
+  static AudioPlayer instance;
 
-  AudioPlayer instance;
+  static var musicPlaying = false;
 
   void initPlayer() {
     hitPlayer = AudioPlayer();
@@ -91,8 +92,7 @@ class _IntroAppState extends State<IntroApp> with WidgetsBindingObserver {
 
   double listHeight(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
-    var width = MediaQuery.of(context).size.width;
-    return (height / width < 1.8) ? height / 3.0 : height / 2.77;
+    return height / 2.8;
   }
 
   void buyPowerUp(int index) {
@@ -191,13 +191,19 @@ class _IntroAppState extends State<IntroApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     super.initState();
     initPlayer();
-    playMusic();
+    if (!musicPlaying) {
+      musicPlaying = true;
+      playMusic();
+    }
 
     damageBar = bosses[bossIndex].life.toDouble() * multiplier;
   }
 
   @override
   void dispose() {
+    if (musicPlaying && instance != null) {
+      instance.stop();
+    }
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -206,9 +212,15 @@ class _IntroAppState extends State<IntroApp> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (state == AppLifecycleState.inactive && instance != null) {
-      instance.stop();
+      if (musicPlaying) {
+        instance.stop();
+        musicPlaying = false;
+      }
     } else if (state == AppLifecycleState.resumed) {
-      playMusic();
+      if (!musicPlaying) {
+        musicPlaying = true;
+        playMusic();
+      }
     }
   }
 
@@ -364,9 +376,16 @@ class _IntroAppState extends State<IntroApp> with WidgetsBindingObserver {
               ),
             ),
           ),
-          Image.asset(
-            stageAsset(),
-            alignment: Alignment.center,
+          Align(
+            alignment: Alignment.topCenter,
+            child: Container(
+              color: Colors.transparent,
+              height: MediaQuery.of(context).size.height - listHeight(context),
+              child: Image.asset(
+                stageAsset(),
+                alignment: Alignment.bottomCenter,
+              ),
+            ),
           ),
           Padding(
             padding: const EdgeInsets.only(bottom: 100.0),
