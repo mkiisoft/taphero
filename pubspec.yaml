@@ -12,6 +12,7 @@ dependencies:
 
   audioplayers: ^0.12.0
   share: ^0.6.1+1
+  simple_animations: ^1.2.0
 
 dev_dependencies:
   flutter_test:
@@ -22,26 +23,11 @@ flutter:
   uses-material-design: true
 
   assets:
-    - assets/background/front.png
-    - assets/background/sky.png
-    - assets/elements/coin.png
-    - assets/elements/hit.png
-    - assets/character/idle.png
-    - assets/character/attack.png
-    - assets/boss/boss.png
-    - assets/boss/boss_one.png
-    - assets/boss/boss_two.png
-    - assets/boss/boss_three.png
-    - assets/boss/boss_four.png
-    - assets/boss/boss_five.png
-    - assets/boss/boss_six.png
-    - assets/boss/boss_seven.png
-    - assets/boss/boss_eight.png
-    - assets/boss/boss_nine.png
-    - assets/audio/coin.mp3
-    - assets/audio/sword.mp3
-    - assets/audio/money.mp3
-    - assets/audio/bgmusic.mp3
+    - assets/background/
+    - assets/character/
+    - assets/boss/
+    - assets/elements/
+    - assets/audio/
 
   fonts:
     - family: Gameplay
