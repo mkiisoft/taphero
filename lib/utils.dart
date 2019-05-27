@@ -1,4 +1,7 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
+
 import 'powerups.dart';
 import 'bosses.dart';
 
@@ -35,6 +38,10 @@ class Utils {
       fontFamily: "Gameplay",
       fontSize: size,
     );
+  }
+
+  static bool isDesktop() {
+    return Platform.isMacOS || Platform.isWindows || Platform.isLinux;
   }
 }
 

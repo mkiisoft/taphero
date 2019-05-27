@@ -4,8 +4,9 @@ import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 
-import 'route.dart';
 import 'particles.dart';
+import 'route.dart';
+import 'utils.dart';
 
 class Welcome extends StatefulWidget {
   @override
@@ -127,10 +128,14 @@ class _WelcomeState extends State<Welcome>
   void initState() {
     WidgetsBinding.instance.addObserver(this);
     super.initState();
-    if (!musicPlaying) {
-      musicPlaying = true;
-      playMusic();
+
+    if (!Utils.isDesktop()) {
+      if (!musicPlaying) {
+        musicPlaying = true;
+        playMusic();
+      }
     }
+
     initTapAnimation();
     initAnimation();
   }
@@ -138,9 +143,13 @@ class _WelcomeState extends State<Welcome>
   @override
   void dispose() {
     disposeAnimations();
-    if (musicPlaying && instance != null) {
-      instance.stop();
+
+    if (!Utils.isDesktop()) {
+      if (musicPlaying && instance != null) {
+        instance.stop();
+      }
     }
+
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -148,15 +157,18 @@ class _WelcomeState extends State<Welcome>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-    if (state == AppLifecycleState.inactive && instance != null) {
-      if (musicPlaying) {
-        instance.stop();
-        musicPlaying = false;
-      }
-    } else if (state == AppLifecycleState.resumed) {
-      if (!musicPlaying) {
-        musicPlaying = true;
-        playMusic();
+
+    if (!Utils.isDesktop()) {
+      if (state == AppLifecycleState.inactive && instance != null) {
+        if (musicPlaying) {
+          instance.stop();
+          musicPlaying = false;
+        }
+      } else if (state == AppLifecycleState.resumed) {
+        if (!musicPlaying) {
+          musicPlaying = true;
+          playMusic();
+        }
       }
     }
   }
