@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'particles.dart';
 import 'route.dart';
 import 'utils.dart';
+import 'game.dart';
 
 class Welcome extends StatefulWidget {
   @override
@@ -110,7 +111,7 @@ class _WelcomeState extends State<Welcome>
             CurvedAnimation(parent: _fadeController, curve: Curves.decelerate))
           ..addStatusListener((status) {
             if (status == AnimationStatus.completed) {
-              Navigator.of(context).pushReplacement(InitGameRoute());
+              Navigator.of(context).pushReplacement(InitRoute(Game()));
             }
           })
           ..addListener(() {
@@ -125,17 +126,20 @@ class _WelcomeState extends State<Welcome>
   }
 
   @override
-  void initState() {
-    WidgetsBinding.instance.addObserver(this);
-    super.initState();
-
+  void didChangeDependencies() {
     if (!Utils.isDesktop()) {
       if (!musicPlaying) {
         musicPlaying = true;
         playMusic();
       }
     }
+    super.didChangeDependencies();
+  }
 
+  @override
+  void initState() {
+    WidgetsBinding.instance.addObserver(this);
+    super.initState();
     initTapAnimation();
     initAnimation();
   }
@@ -147,6 +151,7 @@ class _WelcomeState extends State<Welcome>
     if (!Utils.isDesktop()) {
       if (musicPlaying && instance != null) {
         instance.stop();
+        musicPlaying = false;
       }
     }
 
@@ -157,7 +162,6 @@ class _WelcomeState extends State<Welcome>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
-
     if (!Utils.isDesktop()) {
       if (state == AppLifecycleState.inactive && instance != null) {
         if (musicPlaying) {
@@ -252,7 +256,7 @@ class _WelcomeState extends State<Welcome>
                 color: fade,
               ),
             ),
-          )
+          ),
         ],
       );
     });

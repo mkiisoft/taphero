@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
-import 'game.dart';
+class InitRoute extends PageRoute {
 
-class InitGameRoute extends PageRoute {
+  InitRoute(this.child);
+
+  final Widget child;
 
   @override
   Color get barrierColor => Colors.black;
@@ -18,6 +20,6 @@ class InitGameRoute extends PageRoute {
 
   @override
   Widget buildPage(BuildContext context, Animation<double> animation, Animation<double> secondaryAnimation) {
-    return FadeTransition(opacity: animation, child: Game());
+    return FadeTransition(opacity: animation, child: child);
   }
 }
