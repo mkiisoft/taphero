@@ -2,6 +2,7 @@ import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:share/share.dart';
+import 'package:flutter/services.dart';
 
 import 'button.dart';
 import 'dart:async';
@@ -10,6 +11,7 @@ import 'utils.dart';
 import 'powerups.dart';
 import 'route.dart';
 import 'welcome.dart';
+import 'gamepad.dart';
 
 class Game extends StatefulWidget {
   @override
@@ -20,6 +22,8 @@ class _GameState extends State<Game> with WidgetsBindingObserver, TickerProvider
   AnimationController controller;
   int duration = 1000 * 30;
   int durationBackup;
+
+  static const MethodChannel _channel = const MethodChannel('gamepad');
 
   static String skyAsset() => "assets/background/sky.png";
 
@@ -63,6 +67,8 @@ class _GameState extends State<Game> with WidgetsBindingObserver, TickerProvider
 
   Color clockColor = Color(0xFF67AC5B);
 
+  var _gamepadConnected = false;
+
   String get timerString {
     Duration duration = controller.duration * controller.value;
     return '${(duration.inMinutes).toString().padLeft(2, '0')}:${(duration.inSeconds % 60).toString().padLeft(2, '0')}';
@@ -94,8 +100,12 @@ class _GameState extends State<Game> with WidgetsBindingObserver, TickerProvider
       hitCache.play('audio/sword.mp3');
     }
     setState(() {
-      xAxis = details.globalPosition.dx - 40.0;
-      yAxis = details.globalPosition.dy - 80.0;
+
+      if (details != null) {
+        xAxis = details.globalPosition.dx - 40.0;
+        yAxis = details.globalPosition.dy - 80.0;
+      }
+
       tap = true;
 
       if (damageBar - damageUser <= 0) {
@@ -219,10 +229,7 @@ class _GameState extends State<Game> with WidgetsBindingObserver, TickerProvider
         ),
       );
     } else {
-      return Container(
-        width: 0.0,
-        height: 0.0,
-      );
+      return Container();
     }
   }
 
@@ -386,7 +393,9 @@ class _GameState extends State<Game> with WidgetsBindingObserver, TickerProvider
               onTapUp: (TapUpDetails details) => hide(null),
               onTapCancel: () => hide(null),
             ),
-            hitBox(),
+            _gamepadConnected
+                ? Container()
+                : hitBox(),
           ],
         ),
       ),
@@ -449,66 +458,69 @@ class _GameState extends State<Game> with WidgetsBindingObserver, TickerProvider
                       ? 0xFF808080
                       : !powerUp.bought ? 0xFF505050 : 0xFF202020;
 
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 5.0,
-                    ),
-                    child: Container(
-                      height: 70,
-                      child: Card(
-                        color: Color(bgColor),
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                                child: Text(
-                                  powerUp.name,
-                                  style: Utils.textStyle(11.0),
-                                ),
-                              ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
-                              child: FancyButton(
-                                size: 20,
-                                child: Row(
-                                  children: <Widget>[
-                                    Padding(
-                                      padding: const EdgeInsets.only(left: 10.0, bottom: 2, top: 2),
-                                      child: Text(
-                                        !powerUp.bought ? "BUY" : "BOUGHT",
-                                        style:
-                                        Utils.textStyle(13.0, color: !powerUp.bought ? Colors.white : Colors.grey),
-                                      ),
-                                    ),
-                                    Padding(
-                                      padding: EdgeInsets.only(left: 8.0, right: !powerUp.bought ? 2.0 : 0.0),
-                                      child: Text(
-                                        !powerUp.bought ? powerUp.coins.toString() : "",
-                                        style: Utils.textStyle(13.0),
-                                      ),
-                                    ),
-                                    coinVisibility(powerUp.bought),
-                                  ],
-                                ),
-                                color: !powerUp.bought && coins >= powerUp.coins
-                                    ? Colors.deepPurpleAccent
-                                    : Colors.deepPurple,
-                                onPressed:
-                                !powerUp.bought && coins >= powerUp.coins ? () => buyPowerUp(position) : null,
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
+                  return swordElement(bgColor, powerUp, position);
                 },
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget swordElement(int bgColor, PowerUps powerUp, int position) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: 5.0,
+      ),
+      child: Container(
+        height: 70,
+        child: Card(
+          color: Color(bgColor),
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                  child: Text(
+                    powerUp.name,
+                    style: Utils.textStyle(11.0),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 20.0),
+                child: FancyButton(
+                  size: 20,
+                  child: Row(
+                    children: <Widget>[
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10.0, bottom: 2, top: 2),
+                        child: Text(
+                          !powerUp.bought ? "BUY" : "BOUGHT",
+                          style:
+                          Utils.textStyle(13.0, color: !powerUp.bought ? Colors.white : Colors.grey),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.only(left: 8.0, right: !powerUp.bought ? 2.0 : 0.0),
+                        child: Text(
+                          !powerUp.bought ? powerUp.coins.toString() : "",
+                          style: Utils.textStyle(13.0),
+                        ),
+                      ),
+                      coinVisibility(powerUp.bought),
+                    ],
+                  ),
+                  color: !powerUp.bought && coins >= powerUp.coins
+                      ? Colors.deepPurpleAccent
+                      : Colors.deepPurple,
+                  onPressed: !powerUp.bought && coins >= powerUp.coins ? () => buyPowerUp(position) : null,
+                ),
+              )
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -531,15 +543,15 @@ class _GameState extends State<Game> with WidgetsBindingObserver, TickerProvider
 
         Duration duration = controller.duration * controller.value;
 
-        if ((duration.inSeconds % 60) > 20) {
+        if (duration.inSeconds >= 0 && (duration.inSeconds % 60) > 20) {
           clockColor = Color(0xFF67AC5B);
         }
 
-        if ((duration.inSeconds % 60) < 20) {
+        if (duration.inSeconds == 0 && (duration.inSeconds % 60) < 20) {
           clockColor = Color(0xFFED6337);
         }
 
-        if ((duration.inSeconds % 60) < 10) {
+        if (duration.inSeconds == 0 && (duration.inSeconds % 60) < 10) {
           clockColor = Color(0xFFCA3034);
         }
       });
@@ -571,6 +583,33 @@ class _GameState extends State<Game> with WidgetsBindingObserver, TickerProvider
       initClock(add: addedDuration);
     };
     damageBar = bosses[bossIndex].life.toDouble() * multiplier;
+
+    GamePad.isGamePadConnected.then((connected) {
+      setState(() {
+        _gamepadConnected = connected;
+      });
+    });
+
+    _channel.setMethodCallHandler((call) async {
+      switch (call.method) {
+        case "keyCode":
+          var pair = Utils.mapToPair(Map<int, bool>.from(call.arguments));
+          setState(() {
+            if (!gameOver) {
+              if (pair.value) {
+                switch(GamePad.switchMap[pair.key]) {
+                  case "A":
+                    damage(null);
+                    break;
+                }
+              } else {
+                hide(null);
+              }
+            }
+          });
+          break;
+      }
+    });
   }
 
   @override

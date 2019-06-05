@@ -6,6 +6,13 @@ import 'powerups.dart';
 import 'bosses.dart';
 import 'dart:math';
 
+class Pair<K,V> {
+  K key;
+  V value;
+
+  Pair(this.key, this.value);
+}
+
 class Utils {
 
   static String colorTest(String hex, double lum) {
@@ -69,6 +76,10 @@ class Utils {
       fontFamily: "Gameplay",
       fontSize: size,
     );
+  }
+
+  static Pair mapToPair(Map<int, bool> map) {
+    return Pair(map.keys.toList()[0], map.values.toList()[0]);
   }
 
   static bool isDesktop() {

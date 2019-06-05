@@ -3,19 +3,21 @@ import 'dart:ui';
 import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import 'particles.dart';
 import 'route.dart';
 import 'utils.dart';
 import 'game.dart';
+import 'gamepad.dart';
+import 'button.dart';
 
 class Welcome extends StatefulWidget {
   @override
   _WelcomeState createState() => _WelcomeState();
 }
 
-class _WelcomeState extends State<Welcome>
-    with WidgetsBindingObserver, TickerProviderStateMixin {
+class _WelcomeState extends State<Welcome> with WidgetsBindingObserver, TickerProviderStateMixin {
   static AudioCache musicCache;
   static AudioPlayer instance;
 
@@ -47,6 +49,12 @@ class _WelcomeState extends State<Welcome>
 
   var fade = Colors.transparent;
 
+  String _gamepadName = "";
+
+  static var _gamepadXAxis = 250.0;
+
+  static const MethodChannel _channel = const MethodChannel('gamepad');
+
   void initGame() {
     if (tapToPlay) _fadeController.forward();
   }
@@ -57,58 +65,52 @@ class _WelcomeState extends State<Welcome>
   }
 
   void initAnimation() {
-    _controller =
-        AnimationController(vsync: this, duration: const Duration(seconds: 3));
-    _animationHero = Tween(begin: 0.0, end: 0.6)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.decelerate))
-          ..addStatusListener((state) {
-            if (state == AnimationStatus.completed) {
-              setState(() {
-                tapToPlay = true;
-              });
-              _tapController.forward();
-            }
-          })
-          ..addListener(() {
-            setState(() {
-              heroYAxis = _animationHero.value;
-            });
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 3));
+    _animationHero = Tween(begin: 0.0, end: 0.6).animate(CurvedAnimation(parent: _controller, curve: Curves.decelerate))
+      ..addStatusListener((state) {
+        if (state == AnimationStatus.completed) {
+          setState(() {
+            tapToPlay = true;
           });
-
-    _animationBoss = Tween(begin: 1.0, end: 0.6)
-        .animate(CurvedAnimation(parent: _controller, curve: Curves.decelerate))
-          ..addListener(() {
-            setState(() {
-              bossYAxis = _animationBoss.value;
-            });
-          });
-
-    _controller.forward();
-  }
-
-  void initTapAnimation() {
-    _tapController =
-        AnimationController(vsync: this, duration: const Duration(seconds: 1));
-    _tapAnimation = Tween(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: _tapController, curve: Curves.decelerate))
-      ..addStatusListener((status) {
-        if (status == AnimationStatus.completed) {
-          _tapController.reverse();
-        } else if (status == AnimationStatus.dismissed) {
           _tapController.forward();
         }
       })
       ..addListener(() {
         setState(() {
-          tapAlpha = _tapAnimation.value;
+          heroYAxis = _animationHero.value;
         });
       });
 
-    _fadeController = AnimationController(
-        vsync: this, duration: const Duration(milliseconds: 500));
+    _animationBoss = Tween(begin: 1.0, end: 0.6).animate(CurvedAnimation(parent: _controller, curve: Curves.decelerate))
+      ..addListener(() {
+        setState(() {
+          bossYAxis = _animationBoss.value;
+        });
+      });
+
+    _controller.forward();
+  }
+
+  void initTapAnimation() {
+    _tapController = AnimationController(vsync: this, duration: const Duration(seconds: 1));
+    _tapAnimation =
+        Tween(begin: 0.0, end: 1.0).animate(CurvedAnimation(parent: _tapController, curve: Curves.decelerate))
+          ..addStatusListener((status) {
+            if (status == AnimationStatus.completed) {
+              _tapController.reverse();
+            } else if (status == AnimationStatus.dismissed) {
+              _tapController.forward();
+            }
+          })
+          ..addListener(() {
+            setState(() {
+              tapAlpha = _tapAnimation.value;
+            });
+          });
+
+    _fadeController = AnimationController(vsync: this, duration: const Duration(milliseconds: 500));
     _fadeAnimation = ColorTween(begin: Colors.transparent, end: Colors.black)
-        .animate(
-            CurvedAnimation(parent: _fadeController, curve: Curves.decelerate))
+        .animate(CurvedAnimation(parent: _fadeController, curve: Curves.decelerate))
           ..addStatusListener((status) {
             if (status == AnimationStatus.completed) {
               Navigator.of(context).pushReplacement(InitRoute(Game()));
@@ -142,6 +144,52 @@ class _WelcomeState extends State<Welcome>
     super.initState();
     initTapAnimation();
     initAnimation();
+
+    GamePad.gamepadName.then((name) {
+      setState(() {
+        _gamepadName = name;
+        _gamepadXAxis = 15.0;
+        hideController();
+      });
+    });
+
+    _channel.setMethodCallHandler((call) async {
+      switch (call.method) {
+        case "gamepadName":
+          setState(() {
+            _gamepadName = call.arguments;
+            _gamepadXAxis = 15.0;
+            hideController();
+          });
+          break;
+        case "gamepadRemoved":
+          setState(() {
+            _gamepadName = "Undefined";
+            _gamepadXAxis = 250.0;
+          });
+          break;
+        case "keyCode":
+          var pair = Utils.mapToPair(Map<int, bool>.from(call.arguments));
+          setState(() {
+            if (pair.value) {
+              switch(GamePad.switchMap[pair.key]) {
+                case "A":
+                  initGame();
+                  break;
+              }
+            }
+          });
+          break;
+      }
+    });
+  }
+  
+  void hideController() {
+    Future.delayed(const Duration(seconds: 3), () {
+      setState(() {
+        _gamepadXAxis = 250.0;
+      });
+    });
   }
 
   @override
@@ -226,8 +274,7 @@ class _WelcomeState extends State<Welcome>
             bottom: false,
             child: Container(
               alignment: Alignment.topCenter,
-              padding: EdgeInsets.only(
-                  top: constraints.maxHeight * 0.04, left: 15.0, right: 15.0),
+              padding: EdgeInsets.only(top: constraints.maxHeight * 0.04, left: 15.0, right: 15.0),
               child: Image.asset(
                 logoAsset(),
                 height: 150.0,
@@ -257,6 +304,42 @@ class _WelcomeState extends State<Welcome>
               ),
             ),
           ),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: AnimatedContainer(
+              duration: const Duration(seconds: 1),
+              curve: Curves.decelerate,
+              transform: Matrix4.translationValues(_gamepadXAxis, -20, 0),
+              child: FancyButton(
+                size: 40,
+                color: Color(0xFFEFF3ED),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Image.asset(
+                      "assets/elements/controller.png",
+                      fit: BoxFit.fill,
+                      height: 20,
+                      width: 45,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10, right: 10),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Text(
+                          _gamepadName,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontFamily: "Gameplay"
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          )
         ],
       );
     });

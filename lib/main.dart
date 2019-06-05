@@ -8,7 +8,7 @@ import 'welcome.dart';
 
 void main() {
   _setTargetPlatformForDesktop();
-  runApp(MyApp());
+  runApp(TapHero());
 }
 
 void _setTargetPlatformForDesktop() {
@@ -23,7 +23,14 @@ void _setTargetPlatformForDesktop() {
   }
 }
 
-class MyApp extends StatelessWidget {
+class TapHero extends StatefulWidget {
+
+  @override
+  _TapHeroState createState() => _TapHeroState();
+}
+
+class _TapHeroState extends State<TapHero> {
+
   @override
   Widget build(BuildContext context) {
     SystemChrome.setPreferredOrientations([
