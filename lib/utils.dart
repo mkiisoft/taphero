@@ -19,11 +19,9 @@ class Utils {
     RegExp hexColor = RegExp(r'^#?([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$');
     Iterable<Match> matches = hexColor.allMatches(hex);
     String values = "";
-    matches.toList()[0].group(1).runes.forEach((int rune) {
+    matches.toList()[0].group(1)!.runes.forEach((int rune) {
       var character = String.fromCharCode(rune);
-      if (character != null) {
-       values += character;
-      }
+     values += character;
     });
     if (values.length < 6) {
       values = values[0] + values[0] + values[1] + values[1] + values[2] + values[2];
@@ -31,7 +29,7 @@ class Utils {
     var rgb = "";
     for (int i = 0; i < 3; i++) {
       var value = values.substring(i * 2, 2 * (i + 1));
-      var parse = int.tryParse(value, radix: 16);
+      var parse = int.tryParse(value, radix: 16)!;
       var string = min(max(0, parse + (parse * lum)), 255).round().toRadixString(16);
 
       rgb += ("00" + string).substring(string.length);
@@ -40,13 +38,13 @@ class Utils {
     return rgb.toUpperCase();
   }
 
-  static int hexToInt({String color, double lum = 0.0}) {
-    var value = "0xFF${Utils.colorTest(color, lum ?? 0)}";
+  static int hexToInt({required String color, double lum = 0.0}) {
+    var value = "0xFF${Utils.colorTest(color, lum)}";
     return int.parse(value);
   }
 
   static List<PowerUps> getPowerUps() {
-    var list = List<PowerUps>();
+    List<PowerUps> list = [];
     list.add(PowerUps("Master Sword", 2.15, false, 50));
     list.add(PowerUps("Lengendary Sword", 2.45, false, 180));
     list.add(PowerUps("Keyblade", 3.75, false, 300));
@@ -57,7 +55,7 @@ class Utils {
   }
 
   static List<Bosses> getBosses() {
-    var list = List<Bosses>();
+    List<Bosses> list = [];
     list.add(Bosses("Lunabi", 450, "assets/boss/boss_one.png"));
     list.add(Bosses("ivygrass", 880, "assets/boss/boss_two.png"));
     list.add(Bosses("Tombster", 1120, "assets/boss/boss_three.png"));
@@ -89,15 +87,15 @@ class Utils {
 
 class StrokeText extends StatelessWidget {
   final String text;
-  final double fontSize;
-  final FontWeight fontWeight;
-  final Color color;
-  final Color strokeColor;
-  final double strokeWidth;
-  final String fontFamily;
+  final double? fontSize;
+  final FontWeight? fontWeight;
+  final Color? color;
+  final Color? strokeColor;
+  final double? strokeWidth;
+  final String? fontFamily;
 
   const StrokeText(this.text,
-      {Key key,
+      {Key? key,
       this.fontSize,
       this.fontWeight,
       this.color,
@@ -126,8 +124,8 @@ class StrokeText extends StatelessWidget {
             fontWeight: fontWeight,
             fontFamily: fontFamily,
             foreground: Paint()
-              ..strokeWidth = strokeWidth
-              ..color = strokeColor
+              ..strokeWidth = strokeWidth!
+              ..color = strokeColor!
               ..style = PaintingStyle.stroke,
           ),
         ),

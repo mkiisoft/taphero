@@ -1,6 +1,5 @@
 import 'dart:ui';
 
-import 'package:audioplayers/audio_cache.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -13,13 +12,14 @@ import 'gamepad.dart';
 import 'button.dart';
 
 class Welcome extends StatefulWidget {
+  const Welcome({super.key});
+
   @override
   _WelcomeState createState() => _WelcomeState();
 }
 
 class _WelcomeState extends State<Welcome> with WidgetsBindingObserver, TickerProviderStateMixin {
-  static AudioCache musicCache;
-  static AudioPlayer instance;
+  static AudioPlayer? musicPlayer;
 
   static var musicPlaying = false;
 
@@ -34,34 +34,34 @@ class _WelcomeState extends State<Welcome> with WidgetsBindingObserver, TickerPr
   var heroYAxis = 0.0;
   var bossYAxis = 1.0;
 
-  AnimationController _controller;
-  Animation _animationHero;
-  Animation _animationBoss;
+  late AnimationController _controller;
+  late Animation _animationHero;
+  late Animation _animationBoss;
 
   var tapToPlay = false;
   var tapAlpha = 0.0;
 
-  AnimationController _tapController;
-  Animation _tapAnimation;
+  late AnimationController _tapController;
+  late Animation _tapAnimation;
 
-  AnimationController _fadeController;
-  Animation _fadeAnimation;
+  late AnimationController _fadeController;
+  late Animation _fadeAnimation;
 
-  var fade = Colors.transparent;
+  Color? fade = Colors.transparent;
 
-  String _gamepadName = "";
+  String? _gamepadName = "";
 
   static var _gamepadXAxis = 250.0;
 
-  static const MethodChannel _channel = const MethodChannel('gamepad');
+  static const MethodChannel _channel = MethodChannel('gamepad');
 
   void initGame() {
+    musicPlayer = AudioPlayer();
     if (tapToPlay) _fadeController.forward();
   }
 
   void playMusic() async {
-    musicCache = AudioCache(prefix: "audio/");
-    instance = await musicCache.loop("welcome.mp3");
+    await musicPlayer!.play(AssetSource('audio/welcome.mp3'));
   }
 
   void initAnimation() {
@@ -197,8 +197,8 @@ class _WelcomeState extends State<Welcome> with WidgetsBindingObserver, TickerPr
     disposeAnimations();
 
     if (!Utils.isDesktop()) {
-      if (musicPlaying && instance != null) {
-        instance.stop();
+      if (musicPlaying && musicPlayer != null) {
+        musicPlayer!.stop();
         musicPlaying = false;
       }
     }
@@ -211,9 +211,9 @@ class _WelcomeState extends State<Welcome> with WidgetsBindingObserver, TickerPr
   void didChangeAppLifecycleState(AppLifecycleState state) {
     super.didChangeAppLifecycleState(state);
     if (!Utils.isDesktop()) {
-      if (state == AppLifecycleState.inactive && instance != null) {
+      if (state == AppLifecycleState.inactive && musicPlayer != null) {
         if (musicPlaying) {
-          instance.stop();
+          musicPlayer!.stop();
           musicPlaying = false;
         }
       } else if (state == AppLifecycleState.resumed) {
@@ -241,7 +241,7 @@ class _WelcomeState extends State<Welcome> with WidgetsBindingObserver, TickerPr
           Align(
             alignment: Alignment.center,
             child: Align(
-              alignment: Alignment(0.0, -1.0),
+              alignment: const Alignment(0.0, -1.0),
               heightFactor: bossYAxis,
               child: Image.asset(
                 bossAsset(),
@@ -296,7 +296,7 @@ class _WelcomeState extends State<Welcome> with WidgetsBindingObserver, TickerPr
             ),
           ),
           AnimatedContainer(
-            duration: Duration(seconds: 2),
+            duration: const Duration(seconds: 2),
             child: GestureDetector(
               onTap: initGame,
               child: Container(
@@ -312,7 +312,7 @@ class _WelcomeState extends State<Welcome> with WidgetsBindingObserver, TickerPr
               transform: Matrix4.translationValues(_gamepadXAxis, -20, 0),
               child: FancyButton(
                 size: 40,
-                color: Color(0xFFEFF3ED),
+                color: const Color(0xFFEFF3ED),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
@@ -327,8 +327,8 @@ class _WelcomeState extends State<Welcome> with WidgetsBindingObserver, TickerPr
                       child: Material(
                         color: Colors.transparent,
                         child: Text(
-                          _gamepadName,
-                          style: TextStyle(
+                          _gamepadName!,
+                          style: const TextStyle(
                             fontSize: 12,
                             fontFamily: "Gameplay"
                           ),

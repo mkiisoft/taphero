@@ -10,7 +10,7 @@ class InitRoute extends PageRoute {
   Color get barrierColor => Colors.black;
 
   @override
-  String get barrierLabel => null;
+  String? get barrierLabel => null;
 
   @override
   bool get maintainState => true;

@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 
 class FancyButton extends StatefulWidget {
   const FancyButton({
-    Key key,
-    @required this.child,
-    @required this.size,
-    @required this.color,
+    Key? key,
+    required this.child,
+    required this.size,
+    required this.color,
     this.duration = const Duration(milliseconds: 160),
     this.onPressed,
   }) : super(key: key);
@@ -13,7 +13,7 @@ class FancyButton extends StatefulWidget {
   final Widget child;
   final Color color;
   final Duration duration;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
 
   final double size;
 
@@ -22,10 +22,10 @@ class FancyButton extends StatefulWidget {
 }
 
 class _FancyButtonState extends State<FancyButton> with TickerProviderStateMixin {
-  AnimationController _animationController;
-  Animation<double> _pressedAnimation;
+  AnimationController? _animationController;
+  late Animation<double> _pressedAnimation;
 
-  TickerFuture _downTicker;
+  late TickerFuture _downTicker;
 
   double get buttonDepth => widget.size * 0.2;
 
@@ -39,7 +39,7 @@ class _FancyButtonState extends State<FancyButton> with TickerProviderStateMixin
       value: oldControllerValue,
     );
     _pressedAnimation = Tween<double>(begin: -buttonDepth, end: 0.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+      CurvedAnimation(parent: _animationController!, curve: Curves.easeInOut),
     );
   }
 
@@ -59,20 +59,20 @@ class _FancyButtonState extends State<FancyButton> with TickerProviderStateMixin
 
   @override
   void dispose() {
-    _animationController.dispose();
+    _animationController!.dispose();
     super.dispose();
   }
 
   void _onTapDown(_) {
     if (widget.onPressed != null) {
-      _downTicker = _animationController.animateTo(1.0);
+      _downTicker = _animationController!.animateTo(1.0);
     }
   }
 
   void _onTapUp(_) {
     if (widget.onPressed != null) {
       _downTicker.whenComplete(() {
-        _animationController.animateTo(0.0);
+        _animationController!.animateTo(0.0);
         widget.onPressed?.call();
       });
     }
@@ -80,7 +80,7 @@ class _FancyButtonState extends State<FancyButton> with TickerProviderStateMixin
 
   void _onTapCancel() {
     if (widget.onPressed != null) {
-      _animationController.reset();
+      _animationController!.reset();
     }
   }
 
@@ -91,7 +91,7 @@ class _FancyButtonState extends State<FancyButton> with TickerProviderStateMixin
     final radius = BorderRadius.circular(horzPadding * 0.5);
 
     return Container(
-      padding: widget.onPressed != null ?  EdgeInsets.only(bottom: 2, left: 0.5, right: 0.5) : null,
+      padding: widget.onPressed != null ?  const EdgeInsets.only(bottom: 2, left: 0.5, right: 0.5) : null,
       decoration: BoxDecoration(
         color: Colors.black87,
         borderRadius: radius,
@@ -112,14 +112,13 @@ class _FancyButtonState extends State<FancyButton> with TickerProviderStateMixin
                 ),
                 AnimatedBuilder(
                   animation: _pressedAnimation,
-                  builder: (BuildContext context, Widget child) {
+                  builder: (BuildContext context, Widget? child) {
                     return Transform.translate(
                       offset: Offset(0.0, _pressedAnimation.value),
                       child: child,
                     );
                   },
                   child: Stack(
-                    overflow: Overflow.visible,
                     children: <Widget>[
                       ClipRRect(
                         borderRadius: radius,
@@ -130,7 +129,7 @@ class _FancyButtonState extends State<FancyButton> with TickerProviderStateMixin
                                 color: _hslRelativeColor(l: 0.06),
                                 borderRadius: radius,
                               ),
-                              child: SizedBox.expand(),
+                              child: const SizedBox.expand(),
                             ),
                             Transform.translate(
                               offset: Offset(0.0, vertPadding * 2),
@@ -139,7 +138,7 @@ class _FancyButtonState extends State<FancyButton> with TickerProviderStateMixin
                                   color: _hslRelativeColor(),
                                   borderRadius: radius,
                                 ),
-                                child: SizedBox.expand(),
+                                child: const SizedBox.expand(),
                               ),
                             ),
                           ],

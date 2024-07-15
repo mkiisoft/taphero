@@ -62,30 +62,30 @@ const SWITCH_PRO_MAPPING = {
 };
 
 class GamePad {
-  KeyListener listener;
+  late KeyListener listener;
 
   static const MethodChannel _channel = const MethodChannel('gamepad');
 
-  static Future<bool> get isGamePadConnected async {
-    final bool isConnected = await _channel.invokeMethod('isGamepadConnected');
+  static Future<bool?> get isGamePadConnected async {
+    final bool? isConnected = await _channel.invokeMethod('isGamepadConnected');
     return isConnected;
   }
 
-  static Future<String> get gamepadName async {
-    final String name = await _channel.invokeMethod("getGamePadName");
+  static Future<String?> get gamepadName async {
+    final String? name = await _channel.invokeMethod("getGamePadName");
     return name;
   }
 
   static Map<int, String> get switchMap => SWITCH_PRO_MAPPING;
 
-  void setListener({GamePadListener gamePadListener, String name}) {
+  void setListener({GamePadListener? gamePadListener, String? name}) {
     listener = (RawKeyEvent e) {
       String evtType = e is RawKeyDownEvent ? GAMEPAD_BUTTON_DOWN : GAMEPAD_BUTTON_UP;
 
       if (e.data is RawKeyEventDataAndroid) {
         RawKeyEventDataAndroid androidEvent = e.data as RawKeyEventDataAndroid;
 
-        String key = "";
+        String? key = "";
 
         if (name == "Pro Controller") {
           key = SWITCH_PRO_MAPPING[androidEvent.keyCode];
@@ -94,7 +94,7 @@ class GamePad {
         }
 
         if (key != null) {
-          gamePadListener(evtType == "DOWN", key);
+          gamePadListener!(evtType == "DOWN", key);
         }
       }
     };
